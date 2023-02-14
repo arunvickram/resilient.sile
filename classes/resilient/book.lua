@@ -5,10 +5,9 @@
 --
 local plain = require("classes.resilient.base")
 local class = pl.class(plain)
-class._name = "resilient.book"
+class._name = "worldly.book"
 
 -- PAGE LAYOUT MASTERS
-
 local layouts = {
   -- Cannonical layout
   canonical = function ()
@@ -88,6 +87,13 @@ for m, n in pairs({ ateliers = 1/4, demiluxe = 1/3, deluxe = 3/8 }) do
   end
 end
 
+-- NUMERALS DEFINITION
+local numerals = {
+  esg = "Gonm",
+  wsg = "Gong",
+  srb = "Sora",
+}
+
 -- CLASS DEFINITION
 
 function class:_init (options)
@@ -117,6 +123,9 @@ function class:_init (options)
   -- override document.parindent default
   SILE.settings:set("document.parindent", "1.25em")
 
+  -- localize page numbers
+  SILE.call('set-counter', { id = "folio", display = numerals[self.language] })
+
   -- override the standard foliostyle hook to rely on styles
   -- TRICKY, TO REMEMBER: Such overrides cannot be done in registerCommands()
   self:registerCommand("foliostyle", function (_, content)
@@ -143,6 +152,13 @@ function class:declareOptions ()
       self.layout = value
     end
     return self.layout
+  end)
+
+  self:declareOption("language", function (_, value)
+    if value then
+      self.language = value
+    end
+    return self.language
   end)
 end
 
@@ -179,7 +195,7 @@ function class:registerStyles ()
   self:registerStyle("sectioning-chapter", { inherit = "sectioning-base" }, {
     font = { weight = 800, size = "+4" },
     paragraph = { skipafter = "bigskip", align = "left" },
-    sectioning = { counter = "sections", level = 1, display = "arabic",
+    sectioning = { counter = "sections", level = 1, display = numerals[self.language],
                   toclevel = 1,
                   open = "odd", numberstyle="sectioning-chapter-number",
                   hook = "sectioning:chapter:hook" },
@@ -187,7 +203,7 @@ function class:registerStyles ()
   self:registerStyle("sectioning-section", { inherit = "sectioning-base" }, {
     font = { weight = 800, size = "+2" },
     paragraph = { skipbefore = "bigskip", skipafter = "medskip", breakafter = false },
-    sectioning = { counter = "sections", level = 2, display = "arabic",
+    sectioning = { counter = "sections", level = 2, display = numerals[self.language],
                   toclevel = 2,
                   numberstyle="sectioning-other-number",
                   hook = "sectioning:section:hook" },
@@ -195,14 +211,14 @@ function class:registerStyles ()
   self:registerStyle("sectioning-subsection", { inherit = "sectioning-base"}, {
     font = { weight = 800, size = "+1" },
     paragraph = { skipbefore = "medskip", skipafter = "smallskip", breakafter = false },
-    sectioning = { counter = "sections", level = 3, display = "arabic",
+    sectioning = { counter = "sections", level = 3, display = numerals[self.language],
                   toclevel = 3,
                   numberstyle="sectioning-other-number" },
   })
   self:registerStyle("sectioning-subsubsection", { inherit = "sectioning-base" }, {
     font = { weight = 800 },
     paragraph = { skipbefore = "smallskip", breakafter = false },
-    sectioning = { counter = "sections", level = 4, display = "arabic",
+    sectioning = { counter = "sections", level = 4, display = numerals[self.language],
                   toclevel = 4,
                   numberstyle="sectioning-other-number" },
   })
@@ -213,7 +229,7 @@ function class:registerStyles ()
   })
   self:registerStyle("sectioning-chapter-number", {}, {
     font = { size = "-1" },
-    numbering = { before = "Chapter ", after = ".", standalone = true },
+    numbering = { before = "", after = ".", standalone = true },
   })
   self:registerStyle("sectioning-other-number", {}, {
     numbering = { after = "." }
@@ -221,7 +237,7 @@ function class:registerStyles ()
 
   -- folio styles
   self:registerStyle("folio-base", {}, {
-    font = { size = "-0.5" }
+    font = { size = "-0.5" },
   })
   self:registerStyle("folio-even", { inherit = "folio-base" }, {
   })
@@ -260,7 +276,7 @@ function class:registerStyles ()
     paragraph = { indentbefore = false, skipbefore = "medskip", breakbefore = false,
                   align = "center",
                   skipafter = "medskip" },
-    sectioning = { counter = "figures", level = 1, display = "arabic",
+    sectioning = { counter = "figures", level = 1, display = numerals[self.language],
                    toclevel = 5, bookmark = false,
                    goodbreak = false, numberstyle="figure-caption-number" },
   })
